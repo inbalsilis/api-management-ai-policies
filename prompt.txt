@@ -1,0 +1,17 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "content": "I am writing a blog post for small business owners. Provide an outline with 5 sections on 'Effective Marketing Strategies for Small Businesses' The outline should include an introduction and conclusion, and focus on the following topics: - Understanding your target audience - Content, social media, and email marketing strategies - Measuring marketing success The outline should clearly articulate the topic, and provide clear structure to ease reading for the target audience.",
+      "name": "bla"
+    }
+  ],
+  "temperature": 1,
+  "top_p": 1,
+  "n": 1,
+  "stream": false,
+  "max_tokens": 5,
+  "presence_penalty": 0,
+  "frequency_penalty": 0,
+  "logit_bias": {}
+}

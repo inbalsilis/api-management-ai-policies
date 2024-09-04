@@ -1,0 +1,33 @@
+<policies>
+    <inbound>
+        <base />
+        <set-backend-service id="lb-backend" backend-id="openaiopool" />
+        <azure-openai-token-limit tokens-per-minute="400000" counter-key="@(context.Subscription.Id)" estimate-prompt-tokens="true" tokens-consumed-header-name="consumed-tokens" remaining-tokens-header-name="remaining-tokens" />
+        <authentication-managed-identity resource="https://cognitiveservices.azure.com/" />
+        <azure-openai-emit-token-metric namespace="genaimetrics">
+            <dimension name="Subscription ID" />
+            <dimension name="Client IP" value="@(context.Request.IpAddress)" />
+        </azure-openai-emit-token-metric>
+        <set-variable name="traceId" value="@(Guid.NewGuid().ToString())" />
+        <set-variable name="traceparentHeader" value="@("00" + context.Variables["traceId"] + "-0000000000000000-01")" />
+        <set-header name="traceparent" exists-action="skip">
+            <value>@((string)context.Variables["traceparentHeader"])</value>
+        </set-header>
+        <set-variable name="body" value="@(context.Request.Body.As<string>(preserveContent: true))" />
+    </inbound>
+    <backend>
+        <retry condition="@(context.Response.StatusCode == 429)" count="3" interval="1" first-fast-retry="true">
+            <set-body>@((string)context.Variables["body"])</set-body>
+            <forward-request />
+        </retry>
+    </backend>
+    <outbound>
+        <base />
+        <set-header name="backend-host" exists-action="skip">
+            <value>@(context.Request.Url.Host)</value>
+        </set-header>
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>

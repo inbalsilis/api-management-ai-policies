@@ -1,0 +1,17 @@
+ApiManagementGatewayLogs
+| where OperationId == "chat-completion"
+| extend TraceId = tostring(BackendRequestHeaders["traceparent"])
+| summarize Count = count() by TraceId
+| where Count > 1
+| project TraceId, Count 
+
+ApiManagementGatewayLogs
+| where OperationId == "chat-completion"
+| summarize CallCount = count() by BackendId
+| project BackendId, CallCount
+| order by CallCount desc
+
+ApiManagementGatewayLogs
+| where OperationId == "chat-completion"
+| summarize SuccessCount = count() by IsRequestSuccess
+| project IsRequestSuccess, SuccessCount
