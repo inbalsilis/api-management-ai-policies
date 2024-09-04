@@ -11,6 +11,10 @@ Upgrade Bicep CLI.
 az bicep upgrade
 ```
 
+Login to Azure.
+```bash
+az login
+```
 
 Create a deployment at resource group from a remote template file, using parameters from a local JSON file.
 ```bash

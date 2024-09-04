@@ -26,6 +26,7 @@
         <set-header name="backend-host" exists-action="skip">
             <value>@(context.Request.Url.Host)</value>
         </set-header>
+        <set-status code="@(context.Response.StatusCode)" reason="@(context.Response.StatusReason)" />
     </outbound>
     <on-error>
         <base />
