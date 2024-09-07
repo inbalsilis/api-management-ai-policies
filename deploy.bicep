@@ -1,13 +1,27 @@
-// Define the API Management service
+var apimName = 'apim-ai-features'
+
+var backendNames = [
+  'aoai-wus-1'
+  'aoai-eus-1'
+  'aoai-eus-2'
+]
+
+var backendUrls = [
+  'https://aoai-wus-1.openai.azure.com/openai'
+  'https://aoai-eus-1.openai.azure.com/openai'
+  'https://aoai-eus-2.openai.azure.com/openai'
+]
+
+
 resource apiManagementService 'Microsoft.ApiManagement/service@2023-09-01-preview' existing = {
-  name: 'apim-sweden'  // Replace with your API Management service name
+  name: apimName
 }
 
-resource openaione 'Microsoft.ApiManagement/service/backends@2023-09-01-preview' = {
-  name: 'openaione'
+resource backends 'Microsoft.ApiManagement/service/backends@2023-09-01-preview' = [for (name, i) in backendNames: {
+  name: name
   parent: apiManagementService
   properties: {
-    url: 'https://openaione.openai.azure.com/openai'
+    url: backendUrls[i]
     protocol: 'http'
     circuitBreaker: {
       rules: [
@@ -27,75 +41,14 @@ resource openaione 'Microsoft.ApiManagement/service/backends@2023-09-01-preview'
               }
             ]
           }
-          name: 'openaioneBreakerRule'
+          name: '${name}BreakerRule'
           tripDuration: 'PT10S'
         }
       ]
     }
   }
-}
-resource openaitwo 'Microsoft.ApiManagement/service/backends@2023-09-01-preview' = {
-  name: 'openaitwo'
-  parent: apiManagementService
-  properties: {
-    url: 'https://openaitwo2.openai.azure.com/openai'
-    protocol: 'http'
-    circuitBreaker: {
-      rules: [
-        {
-          acceptRetryAfter: true
-          failureCondition: {
-            count: 1
-            interval: 'PT10S'
-            statusCodeRanges: [
-              {
-                min: 429
-                max: 429
-              }
-              {
-                min: 500
-                max: 503
-              }
-            ]
-          }
-          name: 'openaitwoBreakerRule'
-          tripDuration: 'PT10S'
-        }
-      ]
-    }
-  }
-}
-resource openaithree 'Microsoft.ApiManagement/service/backends@2023-09-01-preview' = {
-  name: 'openaithree'
-  parent: apiManagementService
-  properties: {
-    url: 'https://openaithree.openai.azure.com/openai'
-    protocol: 'http'
-    circuitBreaker: {
-      rules: [
-        {
-          acceptRetryAfter: true
-          failureCondition: {
-            count: 1
-            interval: 'PT10S'
-            statusCodeRanges: [
-              {
-                min: 429
-                max: 429
-              }
-              {
-                min: 500
-                max: 503
-              }
-            ]
-          }
-          name: 'openaithreeBreakerRule'
-          tripDuration: 'PT10S'
-        }
-      ]
-    }
-  }
-}
+}]
+
 resource aoailbpool 'Microsoft.ApiManagement/service/backends@2023-09-01-preview' = {
   name: 'openaiopool'
   parent: apiManagementService
@@ -105,16 +58,16 @@ resource aoailbpool 'Microsoft.ApiManagement/service/backends@2023-09-01-preview
     pool: {
       services: [
         {
-          id: '/backends/openaione'
+          id: '/backends/${backendNames[0]}'
           priority: 1
         }
         {
-          id: '/backends/openaitwo'
+          id: '/backends/${backendNames[1]}'
           priority: 2
           weight: 1
         }
         {
-          id: '/backends/openaithree'
+          id: '/backends/${backendNames[2]}'
           priority: 2
           weight: 3
         }
