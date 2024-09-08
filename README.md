@@ -88,10 +88,17 @@ Output:
 > **Note**: The following policy can be used in existing APIs or new APIs. the important part is to set the backend service to the backend pool created in the previous step.
 
 ### Option I: Add to existing API
-All you need to do is to add the following load balancer policy to the existing API.
+All you need to do is to add the following [set-backend-service](https://learn.microsoft.com/en-us/azure/api-management/set-backend-service-policy) and the [retry](https://learn.microsoft.com/en-us/azure/api-management/retry-policy) policies for activating the Load Balancer with Circuit Breaker module:    
 ```xml
 <set-backend-service id="lb-backend" backend-id="openaiopool" />
 ```
+
+```xml
+<retry condition="@(context.Response.StatusCode == 429)" count="3" interval="1" first-fast-retry="true">
+  <forward-request buffer-request-body="true" />
+</retry>
+```
+
 ### Option II: Create new API
 #### Add new API
 
@@ -168,16 +175,16 @@ All you need to do is to add the following load balancer policy to the existing 
 
 ![OpenAI Model](/readme/model-deployment.png)
 
-#### Set the Manage Identity
+#### Set the Managed Identity
 > **Note**: The API Management instance should have the System/User 'Managed Identity' set to the OpenAI service.
 
 1. Go to the OpenAI service.
 2. Select the 'Access control (IAM)' blade.
 3. Click on 'Add role assignment'.
-4. Select the role 'Cognitive Services Data Reader' (preview).
+4. Select the role 'Cognitive Services OpenAI User'.
 5. Select the API Management managed identity.
 6. Click on 'Review + assign'.
-7. Repeat the above steps for all the OpenAI services.
+7. Repeat the above steps for **all** the OpenAI services.
 
 ![OpenAI Role](/readme/open-ai-iam.png)
 
@@ -189,7 +196,8 @@ All you need to do is to add the following load balancer policy to the existing 
 We are going to run the [Chat Completion API](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#chat-completions) from the OpenAI service through the API Management API. The API Management API will distribute the requests to the backend pool created in the previous steps.
 
 
-#### Example Command:
+### Run the Python load-test script:
+Execute the test python script [main.py](/main.py) to test the load balancer and circuit breaker configuration.
 ```bash
 python main.py --apim-name apim-ai-features --subscription-key APIM_SUBSCRIPTION_KEY --request-max-tokens 200 --workers 5 --total-requests 1000 --request-limit 30
 ```
@@ -206,7 +214,19 @@ python main.py --apim-name apim-ai-features --subscription-key APIM_SUBSCRIPTION
 > **Note**: You can adjust the values of `--batch_size` and `--total_requests` as needed. If you omit them, the script will use the default values specified in the argparse configuration.
 
 
+#### Test Results:
+```kql
+ApiManagementGatewayLogs
+| where OperationId == "chat-completion"
+| summarize CallCount = count() by BackendId, BackendUrl
+| project BackendId, BackendUrl, CallCount
+| order by CallCount desc
+| render barchart 
+```
+![APIM Gateway Logs](/readme/results-bar-chart.png)
 
+
+## Conclusion
 
 ## References
 

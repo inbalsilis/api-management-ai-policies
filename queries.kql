@@ -4,6 +4,7 @@ ApiManagementGatewayLogs
 | summarize CallCount = count() by BackendId, BackendUrl
 | project BackendId, BackendUrl, CallCount
 | order by CallCount desc
+| render barchart 
 
 ApiManagementGatewayLogs
 | where OperationId == "chat-completion"
