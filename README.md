@@ -27,6 +27,7 @@ By utilizing Azure API Management, you can:
 * if you don't have Azure API Management, [create a new instance](https://learn.microsoft.com/en-us/azure/api-management/get-started-create-service-instance).
 * [Azure OpenAI Services](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/create-resource?pivots=web-portal) for the backend pool, each service should have the **same model deployed with the same name and version** across all the services.
 
+---
 ## Step I: Provision Azure API Management Backend Pool (bicep): 
 
 ### Bicep CLI
@@ -82,7 +83,7 @@ Output:
 > az deployment operation group list --resource-group <resource-group-name> --name apim-deployment --query "[?properties.provisioningState=='Failed']"
 > ```
 
-
+---
 ## Step II: Create the API Management API
 > **Note**: The following policy can be used in existing APIs or new APIs. the important part is to set the backend service to the backend pool created in the previous step.
 
@@ -137,7 +138,7 @@ All you need to do is to add the following load balancer policy to the existing 
 
 ![Add Policy](/readme/policy.png)
 
-
+---
 ## Step III: Cofigure Monitoring
 1. Go to your API Management instance.
 2. Click on 'APIs'.
@@ -152,7 +153,7 @@ All you need to do is to add the following load balancer policy to the existing 
 
 ![Add Monitoring](/readme/monitoring-settings.png)
 
-
+---
 ## Step IV: Prepare the OpenAI Service
 
 #### Deploy the model 
@@ -180,7 +181,7 @@ All you need to do is to add the following load balancer policy to the existing 
 
 ![OpenAI Role](/readme/open-ai-iam.png)
 
-
+---
 ## Step V: Test the Load Balancer
 > **Note**: Calling the API Management API will require the 'api-key' header to be set to the subscription key of the API Management instance.
 > ![API Key](/readme/subscription-key.png)
@@ -188,20 +189,19 @@ All you need to do is to add the following load balancer policy to the existing 
 We are going to run the [Chat Completion API](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#chat-completions) from the OpenAI service through the API Management API. The API Management API will distribute the requests to the backend pool created in the previous steps.
 
 
-
-
-
 #### Example Command:
 ```bash
-python main.py --apim-name apim apim-ai-features --key somekey --batch_size 20 --total_requests 1000
+python main.py --apim-name apim-ai-features --subscription-key APIM_SUBSCRIPTION_KEY --request-max-tokens 200 --workers 5 --total-requests 1000 --request-limit 30
 ```
 
 #### Explanation:
 * `python main.py`: This runs the `main.py` script.
 * `--apim-name apim apim-ai-features`: The name of the API Management.
-* `--key somekey`: This passes the API subscription key.
-* `--batch_size 20`: This sets the batch size to 20 parallel requests (optional, as it defaults to 20).
+* `--key APIM_SUBSCRIPTION_KEY`: This passes the API subscription key.
+* `--request-max-tokens 200`: The maximum number of tokens to generate per request in the completion (optional, as it defaults to 200).
+* `--workers 5`: The number of parallel requests to send (optional, as it defaults to 20).
 * `--total_requests 1000`: This sets the total number of requests to 1000 (optional, as it defaults to 1000).
+* `--request-limit 30`: The number of requests to send per second (optional, as it defaults to 20).
   
 > **Note**: You can adjust the values of `--batch_size` and `--total_requests` as needed. If you omit them, the script will use the default values specified in the argparse configuration.
 
@@ -240,8 +240,8 @@ python main.py --apim-name apim apim-ai-features --key somekey --batch_size 20 -
 [View deployment history with Azure Resource Manager](https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/deployment-history?tabs=azure-cli#deployment-operations-and-error-message)  
 
 #### Azure Tech Community
+[AI Hub Gateway Landing Zone accelerator](https://github.com/Azure-Samples/ai-hub-gateway-solution-accelerator)
 [Leverage Azure API Management to distribute API traffic to multiple backend services](https://techcommunity.microsoft.com/t5/azure-architecture-blog/leverage-azure-api-management-to-distribute-api-traffic-to/ba-p/4041813)  
-
 [Using Azure API Management Circuit Breaker and Load balancing with Azure OpenAI Service](https://techcommunity.microsoft.com/t5/fasttrack-for-azure/using-azure-api-management-circuit-breaker-and-load-balancing/ba-p/4041003)  
 
 #### Miscellaneous
