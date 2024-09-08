@@ -1,15 +1,13 @@
+// Group call count by backend
 ApiManagementGatewayLogs
 | where OperationId == "chat-completion"
-| extend TraceId = tostring(BackendRequestHeaders["traceparent"])
-| summarize Count = count() by TraceId
-| where Count > 1
-| project TraceId, Count 
+| summarize CallCount = count() by BackendId, BackendUrl
+| project BackendId, BackendUrl, CallCount
+| order by CallCount desc
 
 ApiManagementGatewayLogs
 | where OperationId == "chat-completion"
-| summarize CallCount = count() by BackendId
-| project BackendId, CallCount
-| order by CallCount desc
+| where IsRequestSuccess == false
 
 ApiManagementGatewayLogs
 | where OperationId == "chat-completion"

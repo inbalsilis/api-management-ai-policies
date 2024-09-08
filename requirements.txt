@@ -1,1 +1,4 @@
 requests
+argparse
+colorama
+sseclient
